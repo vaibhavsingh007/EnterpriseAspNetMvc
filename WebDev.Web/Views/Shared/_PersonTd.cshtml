@@ -1,0 +1,20 @@
+﻿@model WebDev.Web.Models.PersonListVM
+@{
+    string personId = Model.Person.Id.ToString();
+}
+<tr>
+    <td>
+        @Ajax.ActionLink(Model.Person.FirstName, "PersonDetails", new { id = personId }, new AjaxOptions
+                    {
+                        HttpMethod = "GET",
+                        InsertionMode = InsertionMode.Replace,
+                        UpdateTargetId = "personDetails"
+                    })
+    </td>
+    <td>
+        @Html.DisplayFor(model => model.Person.LastName)
+    </td>
+    <td>
+        <a href="#" id="@personId" class="addrCount tooltip" title="@personId">@Model.AddressCount.ToString()</a>
+    </td>
+</tr>

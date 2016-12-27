@@ -1,0 +1,20 @@
+﻿@model WebDev.Models.Person
+<fieldset>
+    <legend>Person</legend>
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.FirstName) |
+        @Html.DisplayFor(model => model.FirstName)
+    </div>
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.LastName) |
+        @Html.DisplayFor(model => model.LastName)
+    </div>
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.Age) |
+        @Html.DisplayFor(model => model.Age)
+    </div>
+    <div class="display-label">
+        @Html.DisplayNameFor(model => model.HomeTown) |
+        @Html.DisplayFor(model => model.HomeTown)
+    </div>
+</fieldset>

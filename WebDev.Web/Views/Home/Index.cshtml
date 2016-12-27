@@ -1,0 +1,42 @@
+﻿@using WebDev.Web.Models
+@model IEnumerable<PersonListVM>
+@{
+    ViewBag.Title = "Welcome to the WebDev Reports.";
+}
+
+@section scripts{
+    @Scripts.Render("~/bundles/tooltipster")
+}
+
+<h2 class="tooltip" title="blah">@ViewBag.Title<br />
+    <span>Hover over the address count to view the addresses. Click on user's name to view details.
+    </span>
+</h2>
+
+
+@* For use with tooltipster to retrieve addresses asynchronously. *@
+@Html.Hidden("AddressAction", Url.Action("GetPersonAddresses"))
+
+<div class="personList">
+<table>
+
+<tr>
+<th>First Name</th>
+<th>Last Name</th>
+<th>Addresses</th>
+</tr>
+
+@foreach (var personVM in Model)
+{ 
+    @Html.Partial("_PersonTd", personVM)
+}
+
+</table>
+
+</div>
+
+
+<!-- Placeholder for person's details -->
+<div id="personDetails">
+
+</div>
