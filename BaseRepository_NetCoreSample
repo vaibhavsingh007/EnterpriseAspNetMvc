@@ -1,0 +1,117 @@
+using xxxx.dal.Repository.Abstract.Base;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+
+namespace xxx.dal.Repository.Concrete.Base
+{
+    public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : class
+    {
+        protected IUnitOfWork UnitOfWork { get; set; }
+
+        protected MyContext Context => (MyContext)UnitOfWork;
+
+        protected BaseRepository(IUnitOfWork unitOfWork)
+            => UnitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+
+        protected virtual DbSet<TEntity> GetDbSet() => Context.Set<TEntity>();
+
+        protected virtual void SetEntityState(object entity, EntityState entityState)
+            => Context.Entry(entity).State = entityState;
+
+        public virtual async Task<int> CountAsync() => await GetDbSet().CountAsync();
+
+        public virtual async Task<TEntity> FindAsync(params object[] keyValues)
+            => await GetDbSet().FindAsync(keyValues);
+
+        public virtual IQueryable<TEntity> SelectQuery(string query, params object[] parameters)
+            => GetDbSet().FromSql(query, parameters).AsQueryable();
+
+        public virtual async Task<TEntity> InsertAsync(TEntity entity)
+        {
+            TEntity retval;
+
+            try
+            {
+                retval = GetDbSet().Add(entity).Entity;
+                await UnitOfWork.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                //Trace.Write(e.Message);       // Needs .net core 2.0
+                throw;
+            }
+
+            return retval;
+        }
+
+        public virtual async Task InsertRangeAsync(IEnumerable<TEntity> entities)
+        {
+            GetDbSet().AddRange(entities);
+            await UnitOfWork.SaveChangesAsync();
+        }
+
+        public virtual async Task UpdateAsync(TEntity entity)
+        {
+            GetDbSet().Update(entity);
+
+            try
+            {
+                await UnitOfWork.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                //Trace.Write(e.Message);
+                throw;
+            }
+        }
+
+        public virtual async Task DeleteAsync(object id)
+        {
+            TEntity entity = await GetDbSet().FindAsync(id);
+
+            try
+            {
+                await DeleteAsync(entity);
+            }
+            catch (Exception e)
+            {
+                //Trace.Write(e.Message);
+                throw;
+            }
+        }
+
+        public virtual async Task DeleteAsync(TEntity entity)
+        {
+            GetDbSet().Attach(entity);
+            SetEntityState(entity, EntityState.Deleted);
+
+            try
+            {
+                await UnitOfWork.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                //Trace.Write(e.Message);
+                throw;
+            }
+        }
+
+        public virtual async Task<TEntity> FindWithEagerLoadedPropertiesAsync(Expression<Func<TEntity, bool>> predicate, params Expression<Func<TEntity, object>>[] includeProperties)
+        {
+            IQueryable<TEntity> query = Context.Set<TEntity>();
+            includeProperties.ToList().ForEach(p => query.Include(p));
+            return await query.FirstOrDefaultAsync(predicate);
+        }
+
+        public virtual async Task EagerLoadPropertiesAsync(TEntity entity, Expression<Func<TEntity, IEnumerable<object>>> properties)
+            =>
+            await Context.Entry(entity)
+            .Collection(properties)
+            .LoadAsync();
+    }
+}
